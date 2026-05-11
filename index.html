@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#6750a4">
+<title>云悦意境业主代表确认签名</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --primary:#6750a4;
+  --primary-dark:#4f378b;
+  --primary-soft:#eaddff;
+  --warn-bg:#fff8c4;
+  --ink:#1c1b1f;
+  --muted:#6e6b72;
+  --line:#e6e1e9;
+  --ok:#2e7d32;
+  --danger:#b3261e;
+  --bg:#faf7ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans","Microsoft YaHei",sans-serif}
+a{color:var(--primary)}
+.wrap{max-width:520px;margin:0 auto;padding:16px 14px 80px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;
+  box-shadow:0 1px 2px rgba(103,80,164,.05)}
+h1{font-size:22px;margin:8px 0 6px;color:var(--primary)}
+.slogan{font-size:15px;color:var(--primary-dark);font-weight:600;margin:4px 0 6px}
+.intro{color:var(--muted);font-size:13px;margin:0}
+.rep{background:var(--warn-bg);border-left:6px solid var(--primary);border-radius:12px;padding:14px 16px}
+.rep .label{color:#8a6a00;font-size:12px;letter-spacing:.5px}
+.rep .name{font-size:20px;font-weight:700;margin:4px 0}
+.rep .addr{font-size:15px}
+.rep .lock{display:inline-block;margin-top:6px;font-size:12px;color:#8a6a00;
+  background:rgba(0,0,0,.04);padding:2px 8px;border-radius:99px}
+label.field{display:block;margin:12px 0 4px;font-size:13px;color:var(--muted)}
+input[type=text],input[type=tel],input[type=password],select{
+  width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line);
+  border-radius:10px;background:#fff;font-size:16px;color:var(--ink);outline:none}
+input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.check{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px dashed var(--primary);
+  border-radius:10px;background:#fbf8ff}
+.check input{width:20px;height:20px;margin-top:2px;accent-color:var(--primary)}
+.check label{margin:0;color:var(--ink);font-size:14px;line-height:1.5}
+.sig-wrap{position:relative;border:1px solid var(--line);border-radius:10px;
+  background:#fff;overflow:hidden}
+canvas.sig{display:block;width:100%;height:180px;touch-action:none;cursor:crosshair;
+  background:repeating-linear-gradient(0deg,transparent 0 34px,rgba(103,80,164,.05) 34px 35px)}
+.sig-hint{position:absolute;left:10px;top:8px;color:#bbb;font-size:12px;pointer-events:none}
+.sig-tools{display:flex;justify-content:space-between;align-items:center;
+  padding:6px 8px;border-top:1px dashed var(--line);font-size:12px;color:var(--muted)}
+.sig-tools button{background:transparent;border:none;color:var(--primary);font-size:13px;
+  padding:6px 8px;cursor:pointer;border-radius:6px}
+.sig-tools button:hover{background:var(--primary-soft)}
+button.primary{
+  width:100%;min-height:48px;margin-top:14px;border:none;border-radius:999px;
+  background:var(--primary);color:#fff;font-size:16px;font-weight:600;cursor:pointer;
+  transition:background .15s}
+button.primary:hover{background:var(--primary-dark)}
+button.ghost{
+  background:transparent;border:1px solid var(--primary);color:var(--primary);
+  padding:8px 14px;border-radius:999px;cursor:pointer;font-size:13px}
+button.danger{
+  background:#fff;border:1px solid var(--danger);color:var(--danger);
+  padding:8px 14px;border-radius:999px;cursor:pointer;font-size:13px}
+details.neighbors{background:#fff;border:1px solid var(--line);border-radius:14px;padding:0 14px}
+details.neighbors summary{list-style:none;cursor:pointer;padding:14px 0;
+  font-weight:600;color:var(--primary);display:flex;justify-content:space-between;align-items:center}
+details.neighbors summary::-webkit-details-marker{display:none}
+details.neighbors summary::after{content:"▸";transition:transform .15s;color:var(--muted)}
+details.neighbors[open] summary::after{transform:rotate(90deg)}
+.nb-list{list-style:none;margin:0;padding:0 0 12px}
+.nb-list li{padding:8px 0;border-top:1px solid var(--line);font-size:14px;
+  display:flex;justify-content:space-between;gap:8px}
+.nb-list li .meta{color:var(--muted);font-size:12px}
+.admin{margin-top:18px;text-align:center}
+.admin .entry{color:var(--muted);font-size:12px;cursor:pointer;user-select:none}
+.admin-panel{margin-top:10px;display:none}
+.admin-panel.show{display:block}
+.admin-panel .tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+  background:#222;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;
+  opacity:0;transition:all .25s;pointer-events:none;max-width:88%;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--ok)}
+.toast.err{background:var(--danger)}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px;line-height:1.6}
+.cloud-list{margin-top:12px;max-height:400px;overflow-y:auto}
+.cloud-item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
+.cloud-item .info{font-size:14px;margin-bottom:6px}
+.cloud-item img{height:50px;border:1px solid #eee;border-radius:4px}
+.loading{text-align:center;color:var(--muted);padding:20px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>云悦意境业主代表确认签名</h1>
+    <div class="slogan">同心同力,守护家园 —— 推动地下车库交付,捍卫停车权益</div>
+    <p class="intro">本页用于业主在线签名确认业主代表。您的签名将安全提交至云端,业主代表可查看汇总。</p>
+  </header>
+
+  <section class="card rep" aria-label="业主代表信息">
+    <div class="label">本次确认的业主代表</div>
+    <div class="name">程 健</div>
+    <div class="addr">住址:3幢 2单元 2202</div>
+    <span class="lock">只读 · 不可修改</span>
+  </section>
+
+  <form id="signForm" class="card" novalidate>
+    <div class="check">
+      <input type="checkbox" id="agree" required>
+      <label for="agree">
+        我同意授权 <b>程健(3幢2单元2202)</b> 作为业主代表,就地下车库交付与停车权益相关事宜对外沟通、表态及签署相关文件。
+      </label>
+    </div>
+
+    <label class="field" for="phone">手机号(用于后续联系)</label>
+    <input id="phone" type="tel" inputmode="numeric" maxlength="11"
+           autocomplete="tel-national" placeholder="请输入11位手机号">
+
+    <div class="row">
+      <div>
+        <label class="field" for="building">楼栋</label>
+        <select id="building">
+          <option value="">请选择</option>
+          <option value="3幢">3幢</option>
+          <option value="4幢">4幢</option>
+          <option value="5幢">5幢</option>
+        </select>
+      </div>
+      <div>
+        <label class="field" for="unit">单元</label>
+        <select id="unit">
+          <option value="">请选择</option>
+          <option value="1单元">1单元</option>
+          <option value="2单元">2单元</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="field" for="room">房号(如 2202)</label>
+    <input id="room" type="text" inputmode="numeric" maxlength="5" placeholder="请输入房号">
+
+    <label class="field">手写签名(本人签字)</label>
+    <div class="sig-wrap">
+      <canvas id="sig" class="sig"></canvas>
+      <span class="sig-hint" id="sigHint">请在此区域用手指或鼠标签名</span>
+      <div class="sig-tools">
+        <span>支持触摸与鼠标</span>
+        <button type="button" id="sigClear">清除重签</button>
+      </div>
+    </div>
+
+    <button type="submit" id="submitBtn" class="primary">提交签名确认</button>
+  </form>
+
+  <details class="neighbors" id="neighborsBox">
+    <summary>
+      <span>已签名业主</span>
+      <span class="meta" id="nbCount">加载中...</span>
+    </summary>
+    <ul class="nb-list" id="nbList"></ul>
+  </details>
+
+  <div class="admin">
+    <span class="entry" id="adminEntry">· 管理员入口 ·</span>
+    <div class="admin-panel" id="adminPanel">
+      <div style="margin-top:10px">
+        <input id="adminPwd" type="password" placeholder="请输入管理员密码" style="max-width:260px">
+      </div>
+      <div class="tools">
+        <button type="button" class="ghost" id="btnViewAll">查看所有签名(含图)</button>
+        <button type="button" class="ghost" id="btnExportCsv">导出 CSV</button>
+        <button type="button" class="ghost" id="btnExportHtml">导出 HTML 报告</button>
+      </div>
+      <div id="cloudList" class="cloud-list"></div>
+    </div>
+  </div>
+
+  <footer>
+    云悦意境业主自治联络组 · 本页为业主内部维权使用<br>
+    &copy;<span id="year"></span> 保留一切权利
+  </footer>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ===== Supabase 配置 =====
+  var SUPABASE_URL = 'https://gzeotuvhqmggjmofoubd.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_LQf-vD8FegSPVugo5ia34Q_G2-LOrG7';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  var ADMIN_PWD = '123456';
+  var REP_NAME  = '程健';
+  var REP_ADDR  = '3幢2单元2202';
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  function toast(msg, kind){
+    var el = $('toast');
+    el.textContent = msg;
+    el.className = 'toast show ' + (kind || '');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ el.className = 'toast ' + (kind||''); }, 2800);
+  }
+
+  function maskPhone(p){
+    if(!p || p.length < 7) return p || '';
+    return p.slice(0,3) + '****' + p.slice(7);
+  }
+  function maskRoom(r){
+    if(!r) return '';
+    if(r.length <= 2) return r;
+    return r[0] + '*' + r.slice(2);
+  }
+  function pad2(n){ return n < 10 ? '0'+n : ''+n; }
+  function fmtTime(ts){
+    var d = new Date(ts);
+    return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())
+      +' '+pad2(d.getHours())+':'+pad2(d.getMinutes());
+  }
+  function fileStamp(){
+    var d = new Date();
+    return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+'-'
+      +pad2(d.getHours())+pad2(d.getMinutes());
+  }
+
+  // ===== 签名画布 =====
+  var canvas = $('sig');
+  var ctx = canvas.getContext('2d');
+  var dpr = Math.max(1, window.devicePixelRatio || 1);
+  var drawing = false, hasInk = false;
+
+  function fitCanvas(){
+    var rect = canvas.getBoundingClientRect();
+    canvas.width  = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(dpr, dpr);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = '#1c1b1f';
+  }
+  function ptFromEvent(ev){
+    var rect = canvas.getBoundingClientRect();
+    return { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
+  }
+  function startDraw(ev){
+    ev.preventDefault();
+    if(canvas.setPointerCapture) canvas.setPointerCapture(ev.pointerId);
+    drawing = true;
+    var p = ptFromEvent(ev);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    if(!hasInk){ hasInk = true; $('sigHint').style.display = 'none'; }
+  }
+  function moveDraw(ev){
+    if(!drawing) return;
+    ev.preventDefault();
+    var p = ptFromEvent(ev);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }
+  function endDraw(ev){
+    if(!drawing) return;
+    drawing = false;
+    try{ if(canvas.releasePointerCapture) canvas.releasePointerCapture(ev.pointerId); }catch(e){}
+  }
+  canvas.addEventListener('pointerdown', startDraw);
+  canvas.addEventListener('pointermove', moveDraw);
+  canvas.addEventListener('pointerup', endDraw);
+  canvas.addEventListener('pointercancel', endDraw);
+  canvas.addEventListener('pointerleave', endDraw);
+
+  function clearCanvas(){
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.restore();
+    hasInk = false;
+    $('sigHint').style.display = '';
+  }
+  $('sigClear').addEventListener('click', clearCanvas);
+  window.addEventListener('load', fitCanvas);
+  window.addEventListener('resize', fitCanvas);
+
+  // ===== 表单提交(存云端) =====
+  var form = $('signForm');
+  var agree = $('agree');
+  var phoneI = $('phone');
+  var bldI = $('building');
+  var unitI = $('unit');
+  var roomI = $('room');
+  var submitBtn = $('submitBtn');
+
+  function validPhone(v){ return /^1[3-9]\d{9}$/.test(v); }
+  function validRoom(v){ return /^\d{3,5}$/.test(v); }
+  function canvasHasInk(){
+    if(hasInk) return true;
+    try{
+      var img = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+      for(var i=3;i<img.length;i+=160){ if(img[i] > 0) return true; }
+    }catch(e){}
+    return false;
+  }
+
+  form.addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    if(!agree.checked){ toast('请先勾选"我同意"', 'err'); return; }
+    var phone = phoneI.value.trim();
+    if(!validPhone(phone)){ toast('请填写 11 位有效手机号', 'err'); phoneI.focus(); return; }
+    var building = bldI.value;
+    if(!building){ toast('请选择楼栋', 'err'); return; }
+    var unit = unitI.value;
+    if(!unit){ toast('请选择单元', 'err'); return; }
+    var room = roomI.value.trim();
+    if(!validRoom(room)){ toast('请填写房号(3-5 位数字)', 'err'); roomI.focus(); return; }
+    if(!canvasHasInk()){ toast('请在签名区手写您的签名', 'err'); return; }
+
+    var dataUrl;
+    try{ dataUrl = canvas.toDataURL('image/png'); }
+    catch(e){ toast('签名导出失败,请重试', 'err'); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '提交中...';
+
+    var { error } = await sb.from('signatures').insert({
+      building: building,
+      unit: unit,
+      room: room,
+      phone: phone,
+      agree: true,
+      signature: dataUrl
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = '提交签名确认';
+
+    if(error){
+      if(error.code === '23505'){
+        toast('该房号已签过,无法重复提交', 'err');
+      } else {
+        toast('提交失败: ' + (error.message || '网络错误'), 'err');
+        console.error(error);
+      }
+      return;
+    }
+
+    toast('签名已提交,感谢您的支持!', 'ok');
+    form.reset();
+    clearCanvas();
+    loadNeighbors();
+  });
+
+  // ===== 已签名列表(从云端拉取,脱敏显示) =====
+  async function loadNeighbors(){
+    var { data, error } = await sb.from('signatures')
+      .select('building, unit, room, phone, created_at')
+      .order('created_at', { ascending: false });
+
+    if(error){
+      $('nbCount').textContent = '加载失败';
+      return;
+    }
+    var list = data || [];
+    $('nbCount').textContent = '共 ' + list.length + ' 位';
+    var ul = $('nbList');
+    ul.innerHTML = '';
+    if(list.length === 0){
+      var li = document.createElement('li');
+      li.style.color = 'var(--muted)';
+      li.textContent = '暂无签名记录';
+      ul.appendChild(li);
+      return;
+    }
+    list.forEach(function(r){
+      var li = document.createElement('li');
+      var addr = document.createElement('span');
+      addr.textContent = r.building + r.unit + maskRoom(r.room);
+      var meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.textContent = maskPhone(r.phone) + ' · ' + fmtTime(r.created_at);
+      li.appendChild(addr);
+      li.appendChild(meta);
+      ul.appendChild(li);
+    });
+  }
+
+  // ===== 管理员区 =====
+  $('adminEntry').addEventListener('click', function(){
+    $('adminPanel').classList.toggle('show');
+  });
+  function requireAdmin(){
+    if($('adminPwd').value !== ADMIN_PWD){ toast('管理员密码错误', 'err'); return false; }
+    return true;
+  }
+
+  // 查看所有签名(含签名图)
+  $('btnViewAll').addEventListener('click', async function(){
+    if(!requireAdmin()) return;
+    var box = $('cloudList');
+    box.innerHTML = '<div class="loading">加载中...</div>';
+    var { data, error } = await sb.from('signatures')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if(error){ box.innerHTML = '<div class="loading">加载失败: '+error.message+'</div>'; return; }
+    if(!data || !data.length){ box.innerHTML = '<div class="loading">暂无签名</div>'; return; }
+    box.innerHTML = '<p style="font-size:13px;color:var(--muted)">共 '+data.length+' 份签名</p>'
+      + data.map(function(r, i){
+        return '<div class="cloud-item">'
+          +'<div class="info"><b>'+(i+1)+'.</b> '
+          +escHtml(r.building+r.unit+r.room)+' · '+escHtml(r.phone)
+          +' · '+fmtTime(r.created_at)+'</div>'
+          +'<img src="'+r.signature+'" alt="签名">'
+          +'</div>';
+      }).join('');
+  });
+
+  // 导出 CSV
+  $('btnExportCsv').addEventListener('click', async function(){
+    if(!requireAdmin()) return;
+    var { data, error } = await sb.from('signatures').select('*').order('created_at');
+    if(error || !data || !data.length){ toast('无数据或加载失败', 'err'); return; }
+    var header = ['时间','楼栋','单元','房号','手机号','是否同意','签名(Base64)'];
+    var rows = [header.map(csvEscape).join(',')];
+    data.forEach(function(r){
+      rows.push([fmtTime(r.created_at),r.building,r.unit,r.room,r.phone,
+        r.agree?'同意':'不同意',r.signature].map(csvEscape).join(','));
+    });
+    var blob = new Blob(['﻿'+rows.join('\r\n')], {type:'text/csv;charset=utf-8'});
+    downloadBlob(blob, 'yunyue-signs-'+fileStamp()+'.csv');
+    toast('CSV 已导出 ('+data.length+' 条)', 'ok');
+  });
+
+  // 导出 HTML 报告
+  $('btnExportHtml').addEventListener('click', async function(){
+    if(!requireAdmin()) return;
+    var { data, error } = await sb.from('signatures').select('*').order('created_at');
+    if(error || !data || !data.length){ toast('无数据或加载失败', 'err'); return; }
+    var rowsHtml = data.map(function(r,i){
+      return '<tr><td>'+(i+1)+'</td><td>'+fmtTime(r.created_at)+'</td>'
+        +'<td>'+escHtml(r.building+r.unit+r.room)+'</td><td>'+escHtml(r.phone)+'</td>'
+        +'<td>'+(r.agree?'同意':'不同意')+'</td>'
+        +'<td><img style="height:60px;border:1px solid #eee;border-radius:4px" src="'+r.signature+'"></td></tr>';
+    }).join('');
+    var html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
+      +'<title>签名汇总 '+fileStamp()+'</title>'
+      +'<style>body{font:14px/1.6 sans-serif;margin:24px}h1{color:#6750a4}'
+      +'table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px}'
+      +'th{background:#eaddff;color:#4f378b}</style></head><body>'
+      +'<h1>云悦意境业主签名汇总</h1>'
+      +'<p>代表:'+REP_NAME+'('+REP_ADDR+') · 共 '+data.length+' 份 · '+fmtTime(Date.now())+'</p>'
+      +'<table><thead><tr><th>#</th><th>时间</th><th>地址</th><th>手机号</th><th>态度</th><th>签名</th></tr></thead>'
+      +'<tbody>'+rowsHtml+'</tbody></table></body></html>';
+    var blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    downloadBlob(blob, 'yunyue-signs-'+fileStamp()+'.html');
+    toast('HTML 报告已导出', 'ok');
+  });
+
+  function csvEscape(v){
+    var s = (v==null) ? '' : String(v);
+    if(/[",\n\r]/.test(s)) s = '"' + s.replace(/"/g,'""') + '"';
+    return s;
+  }
+  function escHtml(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function downloadBlob(blob, filename){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+  }
+
+  // ===== 初始化 =====
+  $('year').textContent = new Date().getFullYear();
+  loadNeighbors();
+})();
+</script>
+</body>
+</html>
